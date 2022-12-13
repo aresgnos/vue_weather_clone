@@ -2,18 +2,20 @@
     <div class="wrap">
         <div class="container">
             <MainView />
+            <SubView />
         </div>
     </div>
 </template>
 
 <script>
 import MainView from '@/components/MainView.vue';
+import SubView from '@/components/SubView.vue';
 
 export default {
     setup() {
         return {};
     },
-    components: { MainView }
+    components: { MainView, SubView }
 }
 </script>
 

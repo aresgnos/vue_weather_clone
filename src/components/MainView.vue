@@ -2,11 +2,11 @@
   <div class="leftContainer">
     <div id="cityNameBox">
       <div class="cityName">
-        <p>San Fransisco</p>
-        <p>Nov 4, 2022</p>
+        <p>{{ item.cityName }}</p>
+        <p>{{ item.currentTime }}</p>
       </div>
     </div>
-    <div id="contentBox">
+    <div id="contentsBox">
       <div class="buttonBox">
         <div class="buttonBackground">
           <button class="forecast">Forecast</button>
@@ -15,19 +15,19 @@
       </div>
       <div class="weatherBox">
         <div class="weatherDegree">
-          <p>10&deg;</p>
+          <p>{{ Math.round(item.currentTemp) }}&deg;</p>
         </div>
         <div class="weatherIcon">
           <img src="@/assets/images/01d.png" alt="MainLogo" />
         </div>
         <div class="weatherData">
           <div
-            v-for="Temporary in TemporaryData"
-            :key="Temporary"
+            v-for="temporary in item.temporaryData"
+            :key="temporary"
             class="detailData"
           >
-            <p>{{ Temporary.title }}</p>
-            <p>{{ Temporary.value }}</p>
+            <p>{{ temporary.title }}</p>
+            <p>{{ temporary.value }}</p>
           </div>
         </div>
       </div>
@@ -63,24 +63,67 @@
 </template>
 
 <script>
+import axios from "axios";
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+import { reactive } from "@vue/reactivity";
+dayjs.locale("ko"); // global로 한국어 locale 사용
+
 export default {
   setup() {
-    // 임시 데이터
-    const TemporaryData = [
-      {
-        title: "습도",
-        value: "88%",
-      },
-      {
-        title: "습도",
-        value: "88%",
-      },
-      {
-        title: "습도",
-        value: "88%",
-      },
-    ];
-    return { TemporaryData };
+    const item = reactive({
+      // 현재 시간을 나타내기 위한 Dayjs 플러그인 사용
+      currentTime: dayjs().format("YYYY. MM .DD. ddd"),
+      // 현재 시간에 따른 현재 온도 데이터
+      currentTemp: "",
+      temp: [],
+      icons: [],
+      cityName: "",
+      // 임시 데이터
+      temporaryData: [
+        {
+          title: "습도",
+          value: "",
+        },
+        {
+          title: "풍속",
+          value: "",
+        },
+        {
+          title: "체감온도",
+          value: "",
+        },
+      ],
+    });
+
+    // 초기 데이터 선언을 위한 코드 작성
+    const API_KEY = "287badc8e5f12951018a81a6c07a93a8";
+    const initialLat = 36.5638;
+    const initialLon = 126.9778;
+
+    // get() 메서드를 통해서 우리가 필요로하는 API 데이터를 호출한다.
+    // `https://api.openweathermap.org/data/3.0/onecall?lat=${initialLat}&lon=${initialLon}&appid=${API_KEY}`
+    axios
+      .get(
+        `https://api.openweathermap.org/data/2.5/find?lat=${initialLat}&lon=${initialLon}&cnt=10&appid=${API_KEY}&units=metric`
+      )
+      .then((response) => {
+        console.log(response);
+        const mainCity = response.data.list[3];
+        item.cityName = mainCity.name;
+        console.log(item.cityName);
+        item.currentTemp = mainCity.main.temp;
+        console.log(item.currentTemp);
+        item.temporaryData[0].value = mainCity.main.humidity + "%";
+        item.temporaryData[1].value = mainCity.wind.speed + "m/s";
+        item.temporaryData[2].value = mainCity.main.feels_like + "도";
+
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+
+    return { API_KEY, item };
   },
 };
 </script>
@@ -90,6 +133,7 @@ export default {
 
 .leftContainer {
   width: 324px;
+  min-width: 324px;
   height: 700px;
   border-radius: 50px;
   background: linear-gradient(#16455f, #0e1239);
@@ -125,7 +169,7 @@ export default {
     }
   }
 
-  #contentBox {
+  #contentsBox {
     width: 100%;
     height: 62.5%;
 
@@ -294,7 +338,7 @@ export default {
 
           p {
             color: whitesmoke;
-            font-family: 'Poppins', sans-serif;
+            font-family: "Poppins", sans-serif;
             text-align: center;
             margin-top: 10px;
             margin-bottom: -10px;
@@ -323,10 +367,27 @@ export default {
 
             .fall {
               font-size: 0.9rem;
-
             }
           }
         }
+      }
+    }
+  }
+
+  nav {
+    @include center-sb;
+    widows: calc(100% - 100px);
+    height: 10%;
+    padding: 0 50px;
+
+    a {
+      color: white;
+      font-size: 1.15rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: #799ed0;
       }
     }
   }
