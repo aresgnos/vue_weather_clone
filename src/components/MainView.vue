@@ -38,16 +38,20 @@
         <p>이번주 날씨 보기</p>
       </div>
       <div class="timelyWeatherBox">
-        <div class="timelyWeather">
+        <div
+          class="timelyWeather"
+          v-for="(weather, i) in item.arrayWeather"
+          :key="i"
+        >
           <div class="icon">
             <img src="@/assets/images/01n.png " />
           </div>
           <div class="data">
-            <p class="time">2pm</p>
-            <p class="currentDegree">32&deg;</p>
+            <p class="time">{{ weather.name }}</p>
+            <p class="currentDegree">{{ Math.round(weather.main.temp) }}&deg;</p>
             <div>
               <img src="@/assets/images/drop.png" />
-              <p class="fall">15%</p>
+              <p class="fall">{{ weather.main.humidity }}%</p>
             </div>
           </div>
         </div>
@@ -78,6 +82,7 @@ export default {
       currentTemp: "",
       temp: [],
       icons: [],
+      arrayWeather: [],
       cityName: "",
       // 임시 데이터
       temporaryData: [
@@ -117,7 +122,13 @@ export default {
         item.temporaryData[0].value = mainCity.main.humidity + "%";
         item.temporaryData[1].value = mainCity.wind.speed + "m/s";
         item.temporaryData[2].value = mainCity.main.feels_like + "도";
-
+        // 지역별 날씨 데이터를 제어
+        // item.arrayWeather = response.data.list;
+        // console.log(item.arrayWeather);
+        for (let i = 0; i < 10; i++) {
+          item.arrayWeather[i] = response.data.list[i];
+        }
+        console.log("item.arrayWeather", item.arrayWeather);
       })
       .catch((error) => {
         console.log(error);
@@ -312,13 +323,27 @@ export default {
       width: calc(100% - 70px);
       height: 65%;
       padding: 0 30px;
+      overflow: scroll;
+
+      -ms-overflow-style: none; // IE and Edge
+      scrollbar-width: none; // Firefox
+      &::-webkit-scrollbar {
+        // Chrome, Safari, Opera
+        display: none;
+      }
 
       .timelyWeather {
         display: flex;
+        min-width: 126px;
         width: 126px;
         height: 70px;
         background-color: #0989ff;
         border-radius: 20px;
+        margin-left: 15px;
+
+        &:first-child {
+          margin-left: 0;
+        }
 
         .icon {
           @include center;

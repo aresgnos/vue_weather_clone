@@ -2,8 +2,8 @@
   <div class="rightContainer">
     <div id="cityNameBox">
       <div class="cityName">
-        <p>San Fransisco</p>
-        <p>Nov 4, 2022</p>
+        <p>{{ cityName }}</p>
+        <p>{{ currentTime }}</p>
       </div>
     </div>
     <div id="contentsBox">
@@ -23,8 +23,9 @@
           </div>
           <div class="data">
             <div class="dataName">
-              <p></p>
-              <p></p>
+              <p>{{ 최고온도 }}</p>
+              <p>{{ 최고온도 }}</p>
+
             </div>
             <div class="dataValue">
               <p><span></span> &deg;</p>
@@ -44,11 +45,52 @@
 </template>
 
 <script>
+import dayjs from "dayjs";
 import MapView from "./MapView.vue";
+import { ref } from "@vue/reactivity";
+import "dayjs/locale/ko";
+import axios from "axios";
+dayjs.locale("ko"); // global로 한국어 locale 사용
 
 export default {
   setup() {
-    return {};
+    let currentTime = dayjs().format("YYYY. MM. DD. ddd"); // 현재시간
+    let cityName = ref(""); // 도시 이름
+    let maxTemp = ref(""); // 도시 이름
+    let minTemp = ref(""); // 도시 이름
+
+    // OpenweatherApi 호출 함수
+    const fetchWeatherApi = async () => {
+      // API 호출을 위한 함수 데이터
+      const API_KEY = "287badc8e5f12951018a81a6c07a93a8";
+      let initialLat = 36.5638;
+      let initialLon = 126.9778;
+
+      try {
+        const response = await axios.get(
+          `https://api.openweathermap.org/data/2.5/find?lat=${initialLat}&lon=${initialLon}&cnt=10&appid=${API_KEY}&units=metric`
+        );
+        console.log("response", response);
+        let isData = response.data.list[8];
+        let isCityName = isData.name;
+        let isMaxTemp = isData.main.temp_max;
+        let isMinTemp = isData.main.temp_min;
+        console.log("isMinTemp", isMinTemp);
+
+        // Composition API에서 AJAX 요청과 데이터 변경을 하려면 .value로 접근해야 한다.
+        cityName.value = isCityName;
+        maxTemp.value = isMaxTemp;
+        minTemp.value = isMinTemp;
+
+      } catch (error) {
+        console.log("error", error);
+      }
+    };
+
+    // 함수 호출
+    fetchWeatherApi();
+
+    return { currentTime, cityName, maxTemp, minTemp };
   },
   components: { MapView },
 };
